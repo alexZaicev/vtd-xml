@@ -105,9 +105,9 @@ class intHash {
      *
      */
     public intHash(){
-        hashWidth = 1<<0;
-        mask1 = (hashWidth) -1;
-        mask2 = (~mask1) & 0xffffffff;    
+        hashWidth = 1;
+        mask1 = 0;
+        mask2 = (~mask1);
         storage = new FastIntBuffer[hashWidth];
         e=0;
     }
@@ -116,7 +116,7 @@ class intHash {
         e=hashWidthExpo;
         hashWidth = 1<<hashWidthExpo;
         mask1 = (hashWidth) -1;
-        mask2 = (~mask1) & 0xffffffff;    
+        mask2 = (~mask1);
         storage = new FastIntBuffer[hashWidth];
     }
     public static void main(String[] args) {

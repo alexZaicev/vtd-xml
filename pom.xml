@@ -22,6 +22,29 @@
             <url>${internal.repo.path}/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.0.1-jre</version>
+        </dependency>
+
+    </dependencies>
   
     <build>
         <plugins>
@@ -31,8 +54,8 @@
                 <version>2.3.2</version>
                 <configuration>
                     <fork>true</fork>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>7</source>
+                    <target>7</target>
                     <showDeprecation>true</showDeprecation>
                     <encoding>UTF-8</encoding>
                 </configuration>

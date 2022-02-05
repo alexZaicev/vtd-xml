@@ -17,7 +17,6 @@
  */
 
 package com.ximpleware;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -102,7 +101,7 @@ public class VTDNav_L5 extends VTDNav {
 		encoding = enc;
 		//System.out.println("encoding " + encoding);
 		rootIndex = RootIndex;
-		nestingLevel = depth + 1;
+		this.depth = depth + 1;
 		ns = NS; // namespace aware or not
 		if (ns == false)
 		    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to
@@ -115,26 +114,26 @@ public class VTDNav_L5 extends VTDNav {
                             // eval
 
 		// initialize the context object
-		this.context = new int[nestingLevel];
+		this.context = new int[this.depth];
 		//depth value is the first entry in the context because root is
         // singular.
 		context[0] = 0;
 		//set the value to zero
-		for (int i = 1; i < nestingLevel; i++) {
+		for (int i = 1; i < this.depth; i++) {
 			context[i] = -1;
 		}
 		//currentOffset = 0;
 		//contextStack = new ContextBuffer(1024, nestingLevel + 7);
-		contextStack = new ContextBuffer(10, nestingLevel + 15);
-		contextStack2 = new ContextBuffer(10, nestingLevel + 15);
-		stackTemp = new int[nestingLevel + 15];
+		contextStack = new ContextBuffer(10, this.depth + 15);
+		contextStack2 = new ContextBuffer(10, this.depth + 15);
+		stackTemp = new int[this.depth + 15];
 
 		// initial state of LC variables
 		l1index = l2index = l3index = l4index = l5index= -1;
 		l2lower = l3lower = l4lower = l5lower= -1;
 		l2upper = l3upper = l4upper = l5upper= -1;
-		docOffset = so;
-		docLen = length;
+		offset = so;
+		this.length = length;
 		//System.out.println("offset " + offset + " length " + length);
 		//printL2Buffer();
 		vtdSize = vtd.size;
@@ -159,7 +158,7 @@ public class VTDNav_L5 extends VTDNav {
 		VTDNav_L5 vn = new VTDNav_L5(rootIndex,
 	            encoding,
 	            ns,
-	            nestingLevel-1,
+	            depth -1,
 	            XMLDoc,
 	            vtdBuffer,
 	            l1Buffer,
@@ -167,8 +166,8 @@ public class VTDNav_L5 extends VTDNav {
 	            l3Buffer,
 	            l4Buffer,
 	            l5Buffer,
-	            docOffset,
-	            docLen
+				offset,
+				length
 	            );
 		vn.atTerminal = this.atTerminal;
 		vn.LN = this.LN;
@@ -211,7 +210,7 @@ public class VTDNav_L5 extends VTDNav {
 	    return new VTDNav_L5(rootIndex,
 	            encoding,
 	            ns,
-	            nestingLevel-1,
+	            depth -1,
 	            XMLDoc,
 	            vtdBuffer,
 	            l1Buffer,
@@ -219,8 +218,8 @@ public class VTDNav_L5 extends VTDNav {
 	            l3Buffer,
 	            l4Buffer,
 	            l5Buffer,
-	            docOffset,
-	            docLen
+				offset,
+				length
 	            );
 	}
 	
@@ -478,25 +477,25 @@ public class VTDNav_L5 extends VTDNav {
 		boolean b = contextStack.load(stackTemp);
 		if (b == false)
 			return false;
-		for (int i = 0; i < nestingLevel; i++) {
+		for (int i = 0; i < depth; i++) {
 			context[i] = stackTemp[i];
 		}
 
-		l1index = stackTemp[nestingLevel];
-		l2index = stackTemp[nestingLevel + 1];
-		l3index = stackTemp[nestingLevel + 2];
-		l4index = stackTemp[nestingLevel + 3];
-		l5index = stackTemp[nestingLevel + 4];
-		l2lower = stackTemp[nestingLevel + 5];
-		l2upper = stackTemp[nestingLevel + 6];
-		l3lower = stackTemp[nestingLevel + 7];
-		l3upper = stackTemp[nestingLevel + 8];
-		l4lower = stackTemp[nestingLevel + 9];
-		l4upper = stackTemp[nestingLevel + 10];
-		l5lower = stackTemp[nestingLevel + 11];
-		l5upper = stackTemp[nestingLevel + 12];
-		atTerminal = (stackTemp[nestingLevel + 13] == 1);
-		LN = stackTemp[nestingLevel+14];
+		l1index = stackTemp[depth];
+		l2index = stackTemp[depth + 1];
+		l3index = stackTemp[depth + 2];
+		l4index = stackTemp[depth + 3];
+		l5index = stackTemp[depth + 4];
+		l2lower = stackTemp[depth + 5];
+		l2upper = stackTemp[depth + 6];
+		l3lower = stackTemp[depth + 7];
+		l3upper = stackTemp[depth + 8];
+		l4lower = stackTemp[depth + 9];
+		l4upper = stackTemp[depth + 10];
+		l5lower = stackTemp[depth + 11];
+		l5upper = stackTemp[depth + 12];
+		atTerminal = (stackTemp[depth + 13] == 1);
+		LN = stackTemp[depth +14];
 		return true;
 	}
 	
@@ -513,24 +512,24 @@ public class VTDNav_L5 extends VTDNav {
 		boolean b = contextStack2.load(stackTemp);
 		if (b == false)
 			return false;
-		for (int i = 0; i < nestingLevel; i++) {
+		for (int i = 0; i < depth; i++) {
 			context[i] = stackTemp[i];
 		}
-		l1index = stackTemp[nestingLevel];
-		l2index = stackTemp[nestingLevel + 1];
-		l3index = stackTemp[nestingLevel + 2];
-		l4index = stackTemp[nestingLevel + 3];
-		l5index = stackTemp[nestingLevel + 4];
-		l2lower = stackTemp[nestingLevel + 5];
-		l2upper = stackTemp[nestingLevel + 6];
-		l3lower = stackTemp[nestingLevel + 7];
-		l3upper = stackTemp[nestingLevel + 8];
-		l4lower = stackTemp[nestingLevel + 9];
-		l4upper = stackTemp[nestingLevel + 10];
-		l5lower = stackTemp[nestingLevel + 11];
-		l5upper = stackTemp[nestingLevel + 12];
-		atTerminal = (stackTemp[nestingLevel + 13] == 1);
-		LN = stackTemp[nestingLevel+14];
+		l1index = stackTemp[depth];
+		l2index = stackTemp[depth + 1];
+		l3index = stackTemp[depth + 2];
+		l4index = stackTemp[depth + 3];
+		l5index = stackTemp[depth + 4];
+		l2lower = stackTemp[depth + 5];
+		l2upper = stackTemp[depth + 6];
+		l3lower = stackTemp[depth + 7];
+		l3upper = stackTemp[depth + 8];
+		l4lower = stackTemp[depth + 9];
+		l4upper = stackTemp[depth + 10];
+		l5lower = stackTemp[depth + 11];
+		l5upper = stackTemp[depth + 12];
+		atTerminal = (stackTemp[depth + 13] == 1);
+		LN = stackTemp[depth +14];
 		return true;
 	}
 	
@@ -540,28 +539,28 @@ public class VTDNav_L5 extends VTDNav {
      */
 	final public void push() {
 		
-		for (int i = 0; i < nestingLevel; i++) {
+		for (int i = 0; i < depth; i++) {
 			stackTemp[i] = context[i];
 		}
-		stackTemp[nestingLevel] = l1index;
-		stackTemp[nestingLevel + 1] = l2index;
-		stackTemp[nestingLevel + 2] = l3index;
-		stackTemp[nestingLevel + 3] = l4index;
-		stackTemp[nestingLevel + 4] = l5index;
-		stackTemp[nestingLevel + 5] = l2lower;
-		stackTemp[nestingLevel + 6] = l2upper;
-		stackTemp[nestingLevel + 7] = l3lower;
-		stackTemp[nestingLevel + 8] = l3upper;
-		stackTemp[nestingLevel + 9] = l4lower;
-		stackTemp[nestingLevel + 10] = l4upper;
-		stackTemp[nestingLevel + 11] = l5lower;
-		stackTemp[nestingLevel + 12] = l5upper;
+		stackTemp[depth] = l1index;
+		stackTemp[depth + 1] = l2index;
+		stackTemp[depth + 2] = l3index;
+		stackTemp[depth + 3] = l4index;
+		stackTemp[depth + 4] = l5index;
+		stackTemp[depth + 5] = l2lower;
+		stackTemp[depth + 6] = l2upper;
+		stackTemp[depth + 7] = l3lower;
+		stackTemp[depth + 8] = l3upper;
+		stackTemp[depth + 9] = l4lower;
+		stackTemp[depth + 10] = l4upper;
+		stackTemp[depth + 11] = l5lower;
+		stackTemp[depth + 12] = l5upper;
 		
 		if (atTerminal)
-			stackTemp[nestingLevel + 13] =1;
+			stackTemp[depth + 13] =1;
 		else
-			stackTemp[nestingLevel + 13] =0;
-		stackTemp[nestingLevel+14] = LN; 
+			stackTemp[depth + 13] =0;
+		stackTemp[depth +14] = LN;
 		contextStack.store(stackTemp);
 	}
 	
@@ -573,28 +572,28 @@ public class VTDNav_L5 extends VTDNav {
 	
 	final protected void push2() {
 		
-		for (int i = 0; i < nestingLevel; i++) {
+		for (int i = 0; i < depth; i++) {
 			stackTemp[i] = context[i];
 		}
-		stackTemp[nestingLevel] = l1index;
-		stackTemp[nestingLevel + 1] = l2index;
-		stackTemp[nestingLevel + 2] = l3index;
-		stackTemp[nestingLevel + 3] = l4index;
-		stackTemp[nestingLevel + 4] = l5index;
-		stackTemp[nestingLevel + 5] = l2lower;
-		stackTemp[nestingLevel + 6] = l2upper;
-		stackTemp[nestingLevel + 7] = l3lower;
-		stackTemp[nestingLevel + 8] = l3upper;
-		stackTemp[nestingLevel + 9] = l4lower;
-		stackTemp[nestingLevel + 10] = l4upper;
-		stackTemp[nestingLevel + 11] = l5lower;
-		stackTemp[nestingLevel + 12] = l5upper;
+		stackTemp[depth] = l1index;
+		stackTemp[depth + 1] = l2index;
+		stackTemp[depth + 2] = l3index;
+		stackTemp[depth + 3] = l4index;
+		stackTemp[depth + 4] = l5index;
+		stackTemp[depth + 5] = l2lower;
+		stackTemp[depth + 6] = l2upper;
+		stackTemp[depth + 7] = l3lower;
+		stackTemp[depth + 8] = l3upper;
+		stackTemp[depth + 9] = l4lower;
+		stackTemp[depth + 10] = l4upper;
+		stackTemp[depth + 11] = l5lower;
+		stackTemp[depth + 12] = l5upper;
 		
 		if (atTerminal)
-			stackTemp[nestingLevel + 13] =1;
+			stackTemp[depth + 13] =1;
 		else
-			stackTemp[nestingLevel + 13] =0;
-		stackTemp[nestingLevel+14] = LN; 
+			stackTemp[depth + 13] =0;
+		stackTemp[depth +14] = LN;
 		contextStack2.store(stackTemp);
 	}
 	
@@ -1963,12 +1962,12 @@ public class VTDNav_L5 extends VTDNav {
 	            this.encoding,
 	            this.ns,
 	            true,
-	            this.nestingLevel-1,
+	            this.depth -1,
 	            5,
 	            this.rootIndex,
 	            this.XMLDoc.getBytes(),
-	            this.docOffset,
-	            this.docLen,
+	            this.offset,
+	            this.length,
 	            (FastLongBuffer)this.vtdBuffer,
 	            (FastLongBuffer)this.l1Buffer,
 	            (FastLongBuffer)this.l2Buffer,
@@ -1990,12 +1989,12 @@ public class VTDNav_L5 extends VTDNav {
 	            this.encoding,
 	            this.ns,
 	            true,
-	            this.nestingLevel-1,
+	            this.depth -1,
 	            5,
 	            this.rootIndex,
 	           // this.XMLDoc.getBytes(),
-	            this.docOffset,
-	            this.docLen,
+	            this.offset,
+	            this.length,
 	            (FastLongBuffer)this.vtdBuffer,
 	            (FastLongBuffer)this.l1Buffer,
 	            (FastLongBuffer)this.l2Buffer,

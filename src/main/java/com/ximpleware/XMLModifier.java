@@ -34,7 +34,7 @@ import com.ximpleware.transcode.*;
  */
 
 public class XMLModifier {
-    protected VTDNav md; // master document
+    protected VTDNav nav; // master document
     
     private static final long MASK_DELETE = 0x00000000000000000L; //0000
     private static final long MASK_INSERT_SEGMENT_BYTE = 0x2000000000000000L; //0010
@@ -78,7 +78,7 @@ public class XMLModifier {
      *
      */
     public XMLModifier(){
-        md = null;
+        nav = null;
     }
     /**
      * Attach master document to this instance of XMLModifier
@@ -90,14 +90,14 @@ public class XMLModifier {
     public void bind(VTDNav masterDocument) throws ModifyException{
         if (masterDocument == null)
             throw new IllegalArgumentException("MasterDocument can't be null");
-        md = masterDocument;
+        nav = masterDocument;
         flb = new FastLongBuffer();
         fob = new FastObjectBuffer();
-        int i = intHash.determineHashWidth(md.vtdSize);
+        int i = intHash.determineHashWidth(nav.vtdSize);
         insertHash = new intHash(i);
         deleteHash = new intHash(i);    
         //determine encoding charset string here
-        encoding = md.getEncoding();
+        encoding = nav.getEncoding();
         switch(encoding){
         	case VTDNav.FORMAT_ASCII:
         	    charSet = "ASCII";
@@ -204,10 +204,10 @@ public class XMLModifier {
      */
     public void remove() throws NavException,ModifyException{
         
-        int i = md.getCurrentIndex();
-        int type = md.getTokenType(i);
+        int i = nav.getCurrentIndex();
+        int type = nav.getTokenType(i);
         if (type==VTDNav.TOKEN_STARTING_TAG){
-            long l = md.getElementFragment();
+            long l = nav.getElementFragment();
             removeContent((int)l, (int)(l>>32));            
         } else if (type == VTDNav.TOKEN_ATTR_NAME 
                 || type==VTDNav.TOKEN_ATTR_NS){
@@ -238,15 +238,15 @@ public class XMLModifier {
      *
      */
     public void removeToken(int i) throws ModifyException{        
-        int type = md.getTokenType(i);
-        int os = md.getTokenOffset(i);
+        int type = nav.getTokenType(i);
+        int os = nav.getTokenOffset(i);
 		//int len = md.getTokenLength(i)&0xffff;
 		int len =
 			(type == VTDNav.TOKEN_STARTING_TAG
 				|| type == VTDNav.TOKEN_ATTR_NAME
 				|| type == VTDNav.TOKEN_ATTR_NS)
-				? md.getTokenLength(i) & 0xffff
-				: md.getTokenLength(i);
+				? nav.getTokenLength(i) & 0xffff
+				: nav.getTokenLength(i);
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:        	   
         		if (encoding < VTDNav.FORMAT_UTF_16BE)
@@ -276,12 +276,12 @@ public class XMLModifier {
      *
      */
     public void removeAttribute(int attrNameIndex) throws ModifyException{
-         int type = md.getTokenType(attrNameIndex);
+         int type = nav.getTokenType(attrNameIndex);
         if (type != VTDNav.TOKEN_ATTR_NAME&& type != VTDNav.TOKEN_ATTR_NS)
             throw new ModifyException("token type should be attribute name");
-        int os1 = md.getTokenOffset(attrNameIndex);
-        int os2 = md.getTokenOffset(attrNameIndex+1);
-        int len2 = md.getTokenLength(attrNameIndex+1);
+        int os1 = nav.getTokenOffset(attrNameIndex);
+        int os2 = nav.getTokenOffset(attrNameIndex+1);
+        int len2 = nav.getTokenLength(attrNameIndex+1);
    	    if (encoding < VTDNav.FORMAT_UTF_16BE)
    	        removeContent(os1,os2+len2-os1+1); 
 	    else 
@@ -298,8 +298,8 @@ public class XMLModifier {
      */
     public void removeContent(int offset, int len) throws ModifyException{
 
-        if (offset < md.docOffset || len > md.docLen 
-                || offset + len > md.docOffset + md.docLen){
+        if (offset < nav.offset || len > nav.length
+                || offset + len > nav.offset + nav.length){
             throw new ModifyException("Invalid offset or length for removeContent");
         }
         if (deleteHash.isUnique(offset)==false)
@@ -482,9 +482,9 @@ public class XMLModifier {
         if (newContentBytes==null)
             throw new IllegalArgumentException
             ("newContentBytes can't be null");
-        int offset = md.getTokenOffset(index);
+        int offset = nav.getTokenOffset(index);
         
-        int type = md.getTokenType(index);
+        int type = nav.getTokenType(index);
         /*int len =
 			(type == VTDNav.TOKEN_STARTING_TAG
 				|| type == VTDNav.TOKEN_ATTR_NAME
@@ -535,9 +535,9 @@ public class XMLModifier {
          if (newContentBytes==null)
              throw new IllegalArgumentException
              ("newContentBytes can't be null");
-         int offset = md.getTokenOffset(index);
+         int offset = nav.getTokenOffset(index);
          
-         int type = md.getTokenType(index);
+         int type = nav.getTokenType(index);
          /*int len =
  			(type == VTDNav.TOKEN_STARTING_TAG
  				|| type == VTDNav.TOKEN_ATTR_NAME
@@ -586,9 +586,9 @@ public class XMLModifier {
         throw new IllegalArgumentException
         ("newContentBytes can't be null");
 
-    int offset = md.getTokenOffset(index);
+    int offset = nav.getTokenOffset(index);
     //int len = md.getTokenLength(index);
-    int type = md.getTokenType(index);
+    int type = nav.getTokenType(index);
     /*int len =
 		(type == VTDNav.TOKEN_STARTING_TAG
 			|| type == VTDNav.TOKEN_ATTR_NAME
@@ -643,9 +643,9 @@ public class XMLModifier {
         if (newContentBytes == null)
             throw new IllegalArgumentException("newContentBytes can't be null");
 
-        int offset = md.getTokenOffset(index);
+        int offset = nav.getTokenOffset(index);
         //int len = md.getTokenLength(index);
-        int type = md.getTokenType(index);
+        int type = nav.getTokenType(index);
         /*int len = (type == VTDNav.TOKEN_STARTING_TAG
                 || type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) ? md
                 .getTokenLength(index) & 0xffff
@@ -717,9 +717,9 @@ public class XMLModifier {
         if (newContent==null)
             throw new IllegalArgumentException
             ("String newContent can't be null");
-        int offset = md.getTokenOffset(index);
+        int offset = nav.getTokenOffset(index);
         //int len = md.getTokenLength(index);
-        int type = md.getTokenType(index);
+        int type = nav.getTokenType(index);
         /*int len =
 			(type == VTDNav.TOKEN_STARTING_TAG
 				|| type == VTDNav.TOKEN_ATTR_NAME
@@ -828,8 +828,8 @@ public class XMLModifier {
      */
     public int getUpdatedDocumentSize() throws ModifyException,TranscodeException{
         int size = flb.size;
-        int docSize = md.getXML().getBytes().length;
-        int inc = (md.encoding<VTDNav.FORMAT_UTF_16BE)?2:4;
+        int docSize = nav.getXML().getBytes().length;
+        int inc = (nav.encoding<VTDNav.FORMAT_UTF_16BE)?2:4;
         long l;
         sort();
         check2();
@@ -843,13 +843,13 @@ public class XMLModifier {
                 // MASK_INSERT_SEGMENT_BYTE
                 docSize += ((ByteSegment)fob.objectAt(i)).len;
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS) { 
-                docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding);
+                docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(nav.encoding);
             }  else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED){
             	docSize += ((byte[])fob.objectAt(i)).length+inc;
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
             	docSize += ((ByteSegment)fob.objectAt(i)).len+inc;
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) { 
-            	docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding)+inc;
+            	docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(nav.encoding)+inc;
             }
         }
         return docSize;
@@ -864,11 +864,11 @@ public class XMLModifier {
      */
     public void insertAfterElement(byte[] b)
 		throws ModifyException,NavException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        long l = md.getElementFragment();
+        long l = nav.getElementFragment();
         int offset = (int)l;
         int len = (int)(l>>32);
         insertBytesAt(offset+len,b);
@@ -880,11 +880,11 @@ public class XMLModifier {
      * @throws ModifyException
      */
     private void insertEndingTag(long l) throws ModifyException{
-    	int i = md.getCurrentIndex();
-    	int offset = md.getTokenOffset(i);
-    	int length = md.getTokenLength(i)&0xffff;
-    	byte[] xml = md.getXML().getBytes();
-    	if (md.encoding <VTDNav.FORMAT_UTF_16BE )
+    	int i = nav.getCurrentIndex();
+    	int offset = nav.getTokenOffset(i);
+    	int length = nav.getTokenLength(i)&0xffff;
+    	byte[] xml = nav.getXML().getBytes();
+    	if (nav.encoding <VTDNav.FORMAT_UTF_16BE )
     		insertBytesAt((int)l,xml,offset,length);
     	else
     		insertBytesAt((int)l, xml, offset<<1, length<<1);
@@ -945,7 +945,7 @@ public class XMLModifier {
      
     public void insertAfterHead(byte[] b)
         throws ModifyException,NavException{
-        long i = md.getOffsetAfterHead();
+        long i = nav.getOffsetAfterHead();
         if (i<0){
             //throw new ModifyException("Insertion failed");
             // handle empty element case
@@ -965,7 +965,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(byte[] b)
     	throws ModifyException,NavException {
-    	long i = md.getOffsetBeforeTail();
+    	long i = nav.getOffsetBeforeTail();
         if (i<0){
             //throw new ModifyException("Insertion failed");
             // handle empty element case
@@ -984,7 +984,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(String s)
 	throws ModifyException,UnsupportedEncodingException,NavException {
-    	long i = md.getOffsetBeforeTail();
+    	long i = nav.getOffsetBeforeTail();
     	if (i<0){
         //throw new ModifyException("Insertion failed");
         // handle empty element case
@@ -1008,7 +1008,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertBeforeTail(b);
         }else{
-            long i = md.getOffsetBeforeTail();
+            long i = nav.getOffsetBeforeTail();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	insertAfterHead(src_encoding,b);
@@ -1033,7 +1033,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b,offset,length);
         }else{
-            long i = md.getOffsetBeforeTail();
+            long i = nav.getOffsetBeforeTail();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	insertAfterHead(src_encoding,b,offset, length);
@@ -1073,7 +1073,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertBeforeTail(b,l);
         }else{
-            long i = md.getOffsetBeforeTail();
+            long i = nav.getOffsetBeforeTail();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	insertAfterHead(src_encoding,b,l);
@@ -1093,7 +1093,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(byte[] b, long l)
     throws ModifyException,NavException{
-        long i = md.getOffsetBeforeTail();
+        long i = nav.getOffsetBeforeTail();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertAfterHead(b,l);
@@ -1109,7 +1109,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(ElementFragmentNs ef) 
     throws ModifyException, NavException{
-        long i = md.getOffsetBeforeTail();
+        long i = nav.getOffsetBeforeTail();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertAfterHead(ef);
@@ -1144,7 +1144,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(byte[] b, int offset, int len)
     throws ModifyException,NavException{
-        long i = md.getOffsetBeforeTail();
+        long i = nav.getOffsetBeforeTail();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertAfterHead(b, offset, len);
@@ -1168,7 +1168,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b);
         }else{
-            long i = md.getOffsetAfterHead();
+            long i = nav.getOffsetAfterHead();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
@@ -1198,7 +1198,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b,offset,length);
         }else{
-            long i = md.getOffsetAfterHead();
+            long i = nav.getOffsetAfterHead();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
@@ -1227,7 +1227,7 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b,l);
         }else{
-            long i = md.getOffsetAfterHead();
+            long i = nav.getOffsetAfterHead();
             if (i<0){
                 //throw new ModifyException("Insertion failed");
             	byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
@@ -1253,7 +1253,7 @@ public class XMLModifier {
      */
     public void insertAfterHead(String s)
     throws ModifyException, UnsupportedEncodingException, NavException{
-        long i = md.getOffsetAfterHead();
+        long i = nav.getOffsetAfterHead();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertBytesEnclosedAt((int)i-1,s.getBytes(charSet));
@@ -1291,7 +1291,7 @@ public class XMLModifier {
     */
     public void insertAfterHead(byte[] b, int offset, int len)
     throws ModifyException,NavException{
-        long i = md.getOffsetAfterHead();
+        long i = nav.getOffsetAfterHead();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertBytesEnclosedAt((int)i-1,b, offset,len );
@@ -1311,7 +1311,7 @@ public class XMLModifier {
     */
     public void insertAfterHead(byte[] b, long l)
     throws ModifyException,NavException{
-        long i = md.getOffsetAfterHead();
+        long i = nav.getOffsetAfterHead();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertBytesEnclosedAt((int)i-1,b, (int)l,(int)(l<<32));
@@ -1331,7 +1331,7 @@ public class XMLModifier {
      */
     public void insertAfterHead(ElementFragmentNs ef) 
     throws ModifyException, NavException{
-        long i = md.getOffsetAfterHead();
+        long i = nav.getOffsetAfterHead();
         if (i<0){
             //throw new ModifyException("Insertion failed");
         	insertElementFragmentNsEnclosedAt((int)i-1, ef);
@@ -1352,11 +1352,11 @@ public class XMLModifier {
      */
     public void insertAfterElement(ElementFragmentNs ef)
             throws ModifyException, NavException {
-        int startTagIndex = md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        long l = md.getElementFragment();
+        long l = nav.getElementFragment();
         int offset = (int) l;
         int len = (int) (l >> 32);
         insertElementFragmentNsAt(offset + len, ef);
@@ -1377,12 +1377,12 @@ public class XMLModifier {
     public void insertAfterElement(byte[] b, int contentOffset, int contentLen)
             throws ModifyException, NavException {
         
-        int startTagIndex = md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        long l = md.getElementFragment();
+        long l = nav.getElementFragment();
         int offset = (int) l;
         int len = (int) (l >> 32);
         insertBytesAt(offset + len, b, contentOffset, contentLen);
@@ -1407,11 +1407,11 @@ public class XMLModifier {
         if (src_encoding == encoding) {
             insertAfterElement(b,contentOffset,contentLen);
         } else {
-            int startTagIndex = md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type != VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
-            long l = md.getElementFragment();
+            long l = nav.getElementFragment();
             int offset = (int) l;
             int len = (int) (l >> 32);
             // transcode in here
@@ -1451,11 +1451,11 @@ public class XMLModifier {
      */
     public void insertAfterElement(byte[] b, long l1)
     throws ModifyException,NavException {
-        int startTagIndex = md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        long l = md.getElementFragment();
+        long l = nav.getElementFragment();
         int offset = (int) l;
         int len = (int) (l >> 32);
         insertBytesAt(offset + len, b, l1);
@@ -1478,11 +1478,11 @@ public class XMLModifier {
         if (src_encoding == encoding){
             insertAfterElement(b,l1);
         } else {
-            int startTagIndex = md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type != VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
-            long l = md.getElementFragment();
+            long l = nav.getElementFragment();
             int offset = (int) l;
             int len = (int) (l >> 32);
             byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
@@ -1540,11 +1540,11 @@ public class XMLModifier {
             insertAfterElement(b);
         }
         else {    
-            int startTagIndex =md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type!=VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
-            long l = md.getElementFragment();
+            long l = nav.getElementFragment();
             int offset = (int)l;
             int len = (int)(l>>32);
             // transcoding logic
@@ -1560,11 +1560,11 @@ public class XMLModifier {
      */
     public void insertAfterElement(String s)
     	throws ModifyException,UnsupportedEncodingException,NavException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        long l = md.getElementFragment();
+        long l = nav.getElementFragment();
         int offset = (int)l;
         int len = (int)(l>>32);
         insertBytesAt(offset+len,s.getBytes(charSet));       
@@ -1579,12 +1579,12 @@ public class XMLModifier {
      */
     public void insertBeforeElement(byte[] b)
     	throws ModifyException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         
-        int offset = md.getTokenOffset(startTagIndex)-1;
+        int offset = nav.getTokenOffset(startTagIndex)-1;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset,b);
@@ -1602,15 +1602,15 @@ public class XMLModifier {
      */
     public void insertBeforeElement(int src_encoding, byte[] b)
     	throws ModifyException,TranscodeException{
-        if (src_encoding == md.encoding) {
+        if (src_encoding == nav.encoding) {
             insertBeforeElement(b);
         } else {
-            int startTagIndex = md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type != VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
 
-            int offset = md.getTokenOffset(startTagIndex) - 1;
+            int offset = nav.getTokenOffset(startTagIndex) - 1;
             byte[] bo = Transcoder.transcode(b,0,b.length,src_encoding, encoding); 
             if (encoding < VTDNav.FORMAT_UTF_16BE)
                 insertBytesAt(offset, bo);
@@ -1628,12 +1628,12 @@ public class XMLModifier {
     */
     public void insertBeforeElement(ElementFragmentNs ef)
     	throws ModifyException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         
-        int offset = md.getTokenOffset(startTagIndex)-1;
+        int offset = nav.getTokenOffset(startTagIndex)-1;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertElementFragmentNsAt(offset,ef);
@@ -1654,12 +1654,12 @@ public class XMLModifier {
      */
     public void insertBeforeElement(byte[] b,int contentOffset, int contentLen) throws ModifyException,
             UnsupportedEncodingException {
-        int startTagIndex = md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
 
-        int offset = md.getTokenOffset(startTagIndex) - 1;
+        int offset = nav.getTokenOffset(startTagIndex) - 1;
 
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset, b, contentOffset, contentLen);
@@ -1685,12 +1685,12 @@ public class XMLModifier {
         if (src_encoding == encoding) {
             insertBeforeElement(b,contentOffset, contentLen);
         } else {
-            int startTagIndex = md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type != VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
 
-            int offset = md.getTokenOffset(startTagIndex) - 1;
+            int offset = nav.getTokenOffset(startTagIndex) - 1;
             // do transcoding here
             byte[] bo = Transcoder.transcode(b,contentOffset,contentLen,src_encoding, encoding);
             if (encoding < VTDNav.FORMAT_UTF_16BE)
@@ -1730,12 +1730,12 @@ public class XMLModifier {
      */
     public void insertBeforeElement(byte[] b, long l1) throws ModifyException,
             UnsupportedEncodingException {
-        int startTagIndex = md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
 
-        int offset = md.getTokenOffset(startTagIndex) - 1;
+        int offset = nav.getTokenOffset(startTagIndex) - 1;
 
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset, b, l1);
@@ -1756,15 +1756,15 @@ public class XMLModifier {
      */
     public void insertBeforeElement(int src_encoding, byte[] b, long l1) throws ModifyException,
             UnsupportedEncodingException, TranscodeException {
-        if (src_encoding == md.encoding) {
+        if (src_encoding == nav.encoding) {
             insertBeforeElement(b, l1);
         } else {
-            int startTagIndex = md.getCurrentIndex();
-            int type = md.getTokenType(startTagIndex);
+            int startTagIndex = nav.getCurrentIndex();
+            int type = nav.getTokenType(startTagIndex);
             if (type != VTDNav.TOKEN_STARTING_TAG)
                 throw new ModifyException("Token type is not a starting tag");
 
-            int offset = md.getTokenOffset(startTagIndex) - 1;
+            int offset = nav.getTokenOffset(startTagIndex) - 1;
             byte[] bo = Transcoder.transcode(b, (int)l1, (int)(l1>>32),src_encoding, encoding);
             if (encoding < VTDNav.FORMAT_UTF_16BE)
                 insertBytesAt(offset, bo );
@@ -1798,12 +1798,12 @@ public class XMLModifier {
      */
     public void insertBeforeElement(String s)
     	throws ModifyException,UnsupportedEncodingException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         
-        int offset = md.getTokenOffset(startTagIndex)-1;
+        int offset = nav.getTokenOffset(startTagIndex)-1;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset,s.getBytes(charSet));
@@ -1822,12 +1822,12 @@ public class XMLModifier {
      */
     public void insertAttribute(String attr) 
     	throws ModifyException,UnsupportedEncodingException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex)&0xffff;
+        int offset = nav.getTokenOffset(startTagIndex);
+        int len = nav.getTokenLength(startTagIndex)&0xffff;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,attr.getBytes(charSet));
@@ -1847,12 +1847,12 @@ public class XMLModifier {
      */
     public void insertAttribute(byte[] b) 
     	throws ModifyException,UnsupportedEncodingException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex) & 0xffff;
+        int offset = nav.getTokenOffset(startTagIndex);
+        int len = nav.getTokenLength(startTagIndex) & 0xffff;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,b);
@@ -1872,12 +1872,12 @@ public class XMLModifier {
      */
     public void insertAttribute(int src_encoding, byte[] b) 
     	throws ModifyException,UnsupportedEncodingException,TranscodeException{
-        int startTagIndex =md.getCurrentIndex();
-        int type = md.getTokenType(startTagIndex);
+        int startTagIndex = nav.getCurrentIndex();
+        int type = nav.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
-        int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex)&0xffff;
+        int offset = nav.getTokenOffset(startTagIndex);
+        int len = nav.getTokenLength(startTagIndex)&0xffff;
         byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,bo);
@@ -1899,17 +1899,17 @@ public class XMLModifier {
 		sort();
 		check2();
 		long l;
-		byte[] ba = md.getXML().getBytes();
+		byte[] ba = nav.getXML().getBytes();
 		// for(int i=0;i<flb.size();i++){
 		// System.out.println(" offset value is ==>"+flb.lower32At(i));
 		// }
-		int t = md.vtdBuffer.lower32At(0);
-		int start = (t == 0) ? md.docOffset : 32;
-		int len = (t == 0) ? md.docLen : (md.docLen - 32);
+		int t = nav.vtdBuffer.lower32At(0);
+		int start = (t == 0) ? nav.offset : 32;
+		int len = (t == 0) ? nav.length : (nav.length - 32);
 
 		if (flb.size == 0) {
 			os.write(ba, start, len);
-		} else if (md.encoding < VTDNav.FORMAT_UTF_16BE) {
+		} else if (nav.encoding < VTDNav.FORMAT_UTF_16BE) {
 			int offset = start;
 			int inc = 1;
 			for (int i = 0; i < flb.size; i = i + inc) {
@@ -1945,7 +1945,7 @@ public class XMLModifier {
 						os.write(ba, offset, flb.lower32At(i) - offset);
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
-						ef.writeToOutputStream(os, md.encoding);
+						ef.writeToOutputStream(os, nav.encoding);
 						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
 						os.write(ba, offset, flb.lower32At(i) - offset);
@@ -1967,7 +1967,7 @@ public class XMLModifier {
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
 						os.write(0x3e);
-						ef.writeToOutputStream(os, md.encoding);
+						ef.writeToOutputStream(os, nav.encoding);
 						os.write(0x3c);
 						offset = flb.lower32At(i);
 					}
@@ -2010,7 +2010,7 @@ public class XMLModifier {
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							ElementFragmentNs ef = (ElementFragmentNs) fob
 									.objectAt(i2);
-							ef.writeToOutputStream(os, md.encoding);
+							ef.writeToOutputStream(os, nav.encoding);
 							offset = flb.lower32At(i1)
 									+ (flb.upper32At(i1) & 0x1fffffff);
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
@@ -2032,7 +2032,7 @@ public class XMLModifier {
 							ElementFragmentNs ef = (ElementFragmentNs) fob
 									.objectAt(i2);
 							os.write(0x3e);
-							ef.writeToOutputStream(os, md.encoding);
+							ef.writeToOutputStream(os, nav.encoding);
 							os.write(0x3c);
 							offset = flb.lower32At(i1)
 									+ (flb.upper32At(i1) & 0x1fffffff);
@@ -2044,7 +2044,7 @@ public class XMLModifier {
 		} else {
 			byte[] b1 = ba1;
 			byte[] b2 = ba2;
-			if (md.encoding == VTDNav.FORMAT_UTF_16BE) {
+			if (nav.encoding == VTDNav.FORMAT_UTF_16BE) {
 				b1 = ba3;
 				b2 = ba4;
 			}
@@ -2082,7 +2082,7 @@ public class XMLModifier {
 						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
-						ef.writeToOutputStream(os, md.encoding);
+						ef.writeToOutputStream(os, nav.encoding);
 						offset = flb.lower32At(i) << 1;
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
 						// XML_INSERT_SEGMENT_BYTE
@@ -2105,7 +2105,7 @@ public class XMLModifier {
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
 						os.write(b1);
-						ef.writeToOutputStream(os, md.encoding);
+						ef.writeToOutputStream(os, nav.encoding);
 						os.write(b2);
 						offset = flb.lower32At(i) << 1;
 					}
@@ -2147,7 +2147,7 @@ public class XMLModifier {
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							ElementFragmentNs ef = (ElementFragmentNs) fob
 									.objectAt(i2);
-							ef.writeToOutputStream(os, md.encoding);
+							ef.writeToOutputStream(os, nav.encoding);
 							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
 							// XML_INSERT_SEGMENT_BYTE
@@ -2169,7 +2169,7 @@ public class XMLModifier {
 							ElementFragmentNs ef = (ElementFragmentNs) fob
 									.objectAt(i2);
 							os.write(b1);
-							ef.writeToOutputStream(os, md.encoding);
+							ef.writeToOutputStream(os, nav.encoding);
 							os.write(b2);
 							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
 						}
@@ -2254,17 +2254,17 @@ public class XMLModifier {
       */
     public void updateElementName(String newElementName) throws ModifyException,
     NavException,UnsupportedEncodingException{
-        int i = md.getCurrentIndex();
-        int type = md.getTokenType(i);
+        int i = nav.getCurrentIndex();
+        int type = nav.getTokenType(i);
         if (type!=VTDNav.TOKEN_STARTING_TAG){
             throw new ModifyException("You can only update an element name");
         }
         //int offset = md.getTokenOffset(i);
-        int len = md.getTokenLength(i)& 0xffff;
+        int len = nav.getTokenLength(i)& 0xffff;
         updateToken(i,newElementName);
-        long l = md.getElementFragment();
-        int encoding = md.getEncoding();
-        byte[] xml = md.getXML().getBytes();
+        long l = nav.getElementFragment();
+        int encoding = nav.getEncoding();
+        byte[] xml = nav.getXML().getBytes();
         int temp = (int)l+(int)(l>>32);
         if (encoding < VTDNav.FORMAT_UTF_16BE) {
             //scan backwards for />
@@ -2321,7 +2321,7 @@ public class XMLModifier {
     	output(xbos);
     	VTDGen vg = new VTDGen();
     	vg.setDoc(xbos.getXML());
-    	vg.parse(this.md.ns);
+    	vg.parse(this.nav.ns);
     	return vg.getNav();
     }
     

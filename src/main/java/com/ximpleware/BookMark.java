@@ -75,12 +75,12 @@ public class BookMark {
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
         if (vn.shallowDepth){
-        	if (ba == null || vn.nestingLevel+8 != ba.length)
-        		ba = new int[vn.nestingLevel + 8];
+        	if (ba == null || vn.depth +8 != ba.length)
+        		ba = new int[vn.depth + 8];
         }
         else {
-        	if (ba == null || vn.nestingLevel+14 != ba.length)
-        		ba = new int[vn.nestingLevel + 14];
+        	if (ba == null || vn.depth +14 != ba.length)
+        		ba = new int[vn.depth + 14];
         }
         ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
@@ -115,45 +115,45 @@ public class BookMark {
     public boolean setCursorPosition(VTDNav vn){
         if (vn1 != vn || ba == null || ba[0] == -2)
             return false;
-        for (int i = 0; i < vn.nestingLevel; i++) {
+        for (int i = 0; i < vn.depth; i++) {
 			vn.context[i] = ba[i];
 		}
 		if (vn.shallowDepth) {
-			vn.l1index = ba[vn.nestingLevel];
-			vn.l2index = ba[vn.nestingLevel + 1];
-			vn.l3index = ba[vn.nestingLevel + 2];
-			vn.l2lower = ba[vn.nestingLevel + 3];
-			vn.l2upper = ba[vn.nestingLevel + 4];
-			vn.l3lower = ba[vn.nestingLevel + 5];
-			vn.l3upper = ba[vn.nestingLevel + 6];
+			vn.l1index = ba[vn.depth];
+			vn.l2index = ba[vn.depth + 1];
+			vn.l3index = ba[vn.depth + 2];
+			vn.l2lower = ba[vn.depth + 3];
+			vn.l2upper = ba[vn.depth + 4];
+			vn.l3lower = ba[vn.depth + 5];
+			vn.l3upper = ba[vn.depth + 6];
 
-			if (ba[vn.nestingLevel + 7] < 0) {
+			if (ba[vn.depth + 7] < 0) {
 				vn.atTerminal = true;
 			} else
 				vn.atTerminal = false;
 
-			vn.LN = ba[vn.nestingLevel + 7] & 0x7fffffff;
+			vn.LN = ba[vn.depth + 7] & 0x7fffffff;
 		}else{
 			VTDNav_L5 vnl = (VTDNav_L5)vn;
-			vnl.l1index = ba[vn.nestingLevel];
-			vnl.l2index = ba[vn.nestingLevel + 1];
-			vnl.l3index = ba[vn.nestingLevel + 2];
-			vnl.l4index = ba[vn.nestingLevel + 3];
-			vnl.l5index = ba[vn.nestingLevel + 4];
-			vnl.l2lower = ba[vn.nestingLevel + 5];
-			vnl.l2upper = ba[vn.nestingLevel + 6];
-			vnl.l3lower = ba[vn.nestingLevel + 7];
-			vnl.l3upper = ba[vn.nestingLevel + 8];
-			vnl.l4lower = ba[vn.nestingLevel + 9];
-			vnl.l4upper = ba[vn.nestingLevel + 10] ;
-			vnl.l5lower = ba[vn.nestingLevel + 11] ;
-			vnl.l5upper = ba[vn.nestingLevel + 12];
-			if (ba[vn.nestingLevel+13] < 0){
+			vnl.l1index = ba[vn.depth];
+			vnl.l2index = ba[vn.depth + 1];
+			vnl.l3index = ba[vn.depth + 2];
+			vnl.l4index = ba[vn.depth + 3];
+			vnl.l5index = ba[vn.depth + 4];
+			vnl.l2lower = ba[vn.depth + 5];
+			vnl.l2upper = ba[vn.depth + 6];
+			vnl.l3lower = ba[vn.depth + 7];
+			vnl.l3upper = ba[vn.depth + 8];
+			vnl.l4lower = ba[vn.depth + 9];
+			vnl.l4upper = ba[vn.depth + 10] ;
+			vnl.l5lower = ba[vn.depth + 11] ;
+			vnl.l5upper = ba[vn.depth + 12];
+			if (ba[vn.depth +13] < 0){
 			    vn.atTerminal = true;		    
 			} else
 			    vn.atTerminal = false;
 			
-			vn.LN = ba[vn.nestingLevel+13] & 0x7fffffff;
+			vn.LN = ba[vn.depth +13] & 0x7fffffff;
 		}
 		return true;
     }
@@ -185,37 +185,37 @@ public class BookMark {
         }else {
             bind(vn);
         }
-        for (int i = 0; i < vn.nestingLevel; i++) {
+        for (int i = 0; i < vn.depth; i++) {
             ba[i] = vn1.context[i];
 		}
 		if (vn.shallowDepth) {
-			ba[vn.nestingLevel] = vn.l1index;
-			ba[vn.nestingLevel + 1] = vn.l2index;
-			ba[vn.nestingLevel + 2] = vn.l3index;
-			ba[vn.nestingLevel + 3] = vn.l2lower;
-			ba[vn.nestingLevel + 4] = vn.l2upper;
-			ba[vn.nestingLevel + 5] = vn.l3lower;
-			ba[vn.nestingLevel + 6] = vn.l3upper;
+			ba[vn.depth] = vn.l1index;
+			ba[vn.depth + 1] = vn.l2index;
+			ba[vn.depth + 2] = vn.l3index;
+			ba[vn.depth + 3] = vn.l2lower;
+			ba[vn.depth + 4] = vn.l2upper;
+			ba[vn.depth + 5] = vn.l3lower;
+			ba[vn.depth + 6] = vn.l3upper;
 			// ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-			ba[vn.nestingLevel + 7] = (vn.atTerminal == true) ? (vn.LN | 0x80000000)
+			ba[vn.depth + 7] = (vn.atTerminal == true) ? (vn.LN | 0x80000000)
 					: vn.LN;			
 		}else{
 			VTDNav_L5 vnl = (VTDNav_L5) vn;
-			ba[vn.nestingLevel]= vnl.l1index ;
-			ba[vn.nestingLevel + 1]= vnl.l2index ;
-			ba[vn.nestingLevel + 2]= vnl.l3index ;
-			ba[vn.nestingLevel + 3]= vnl.l4index ;
-			ba[vn.nestingLevel + 4]= vnl.l5index ;
-			ba[vn.nestingLevel + 5]= vnl.l2lower ;
-			ba[vn.nestingLevel + 6]= vnl.l2upper ;
-			ba[vn.nestingLevel + 7]= vnl.l3lower ;
-			ba[vn.nestingLevel + 8]= vnl.l3upper ;
-			ba[vn.nestingLevel + 9]= vnl.l4lower ;
-			ba[vn.nestingLevel + 10]= vnl.l4upper ;
-			ba[vn.nestingLevel + 11]= vnl.l5lower ;
-			ba[vn.nestingLevel + 12]= vnl.l5upper ;
+			ba[vn.depth]= vnl.l1index ;
+			ba[vn.depth + 1]= vnl.l2index ;
+			ba[vn.depth + 2]= vnl.l3index ;
+			ba[vn.depth + 3]= vnl.l4index ;
+			ba[vn.depth + 4]= vnl.l5index ;
+			ba[vn.depth + 5]= vnl.l2lower ;
+			ba[vn.depth + 6]= vnl.l2upper ;
+			ba[vn.depth + 7]= vnl.l3lower ;
+			ba[vn.depth + 8]= vnl.l3upper ;
+			ba[vn.depth + 9]= vnl.l4lower ;
+			ba[vn.depth + 10]= vnl.l4upper ;
+			ba[vn.depth + 11]= vnl.l5lower ;
+			ba[vn.depth + 12]= vnl.l5upper ;
 			//ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-			ba[vn.nestingLevel + 13]= 
+			ba[vn.depth + 13]=
 			    (vn.atTerminal == true)? 
 			        (vn.LN | 0x80000000) : vn.LN ;
 		}
@@ -242,15 +242,15 @@ public class BookMark {
         if (bm2.vn1 == this.vn1){
             if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]]){
             	if (vn1.shallowDepth){
-            		if (this.ba[this.vn1.nestingLevel+7] < 0){
-            			if (this.ba[this.vn1.nestingLevel+7]
-            		            != bm2.ba[this.vn1.nestingLevel+7])
+            		if (this.ba[this.vn1.depth +7] < 0){
+            			if (this.ba[this.vn1.depth +7]
+            		            != bm2.ba[this.vn1.depth +7])
             				return false;
             		}
             	}else{
-               		if (this.ba[this.vn1.nestingLevel+13] < 0){
-            			if (this.ba[this.vn1.nestingLevel+13]
-            		            != bm2.ba[this.vn1.nestingLevel+13])
+               		if (this.ba[this.vn1.depth +13] < 0){
+            			if (this.ba[this.vn1.depth +13]
+            		            != bm2.ba[this.vn1.depth +13])
             				return false;
             		}
             	}
@@ -309,12 +309,12 @@ public class BookMark {
 		}    	
     	if (vn1.getCurrentDepth()>)*/
 		if (vn1.shallowDepth) {
-			for (int i = 0; i < vn1.nestingLevel + 7; i++) {
+			for (int i = 0; i < vn1.depth + 7; i++) {
 				if (ba[i] != bm1.ba[i])
 					return false;
 			}
     	}else {
-    		for (int i = 0; i < vn1.nestingLevel + 14; i++) {
+    		for (int i = 0; i < vn1.depth + 14; i++) {
 				if (ba[i] != bm1.ba[i])
 					return false;
 			}
